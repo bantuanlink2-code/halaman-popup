@@ -193,6 +193,9 @@
     .login-button:hover { box-shadow:0 9px 19px rgba(229,9,32,.26); }
     .login-button:active { transform:translateY(1px); }
     .login-button:disabled { opacity:.65; cursor:wait; }
+    .consent-row { display:flex; align-items:flex-start; gap:9px; margin-top:13px; color:#667085; font-size:10.5px; line-height:1.5; cursor:pointer; }
+    .consent-row input { flex:0 0 16px; width:16px; height:16px; margin:1px 0 0; accent-color:#e50920; }
+    .consent-row:focus-within { color:#344054; }
     .privacy-note { margin-top:11px; padding:9px 10px; border:1px solid #f0f1f4; border-radius:9px; background:#f8f9fb; text-align:left; color:#697386; font-size:10.5px; }
     .terms-note { justify-content:flex-start; gap:8px; margin-top:12px; padding-top:11px; border-top:1px solid #edf0f4; color:#667085; font-size:10.5px; }
     .terms-info-icon { border-color:#e50920; color:#e50920; flex-basis:16px; }
@@ -290,7 +293,7 @@
     </div>
   </main>
 
-  <!-- Form popup umum untuk data non-sensitif; tidak mengirim atau menyimpan data. -->
+  <!-- Form uji coba dengan persetujuan eksplisit sebelum nama diteruskan ke admin Telegram. -->
   <section class="login-overlay" aria-label="Formulir informasi">
     <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="form-title">
       <div class="login-mark login-logo" aria-hidden="true">
@@ -304,7 +307,7 @@
             <rect x="3.5" y="5.5" width="17" height="13" rx="2.2" stroke="currentColor" stroke-width="1.7"/>
             <path d="m5 7 7 5.5L19 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <input class="login-input" id="first-name" name="first_name" type="text" placeholder="Nama Depan" autocomplete="given-name">
+          <input class="login-input" id="first-name" name="first_name" type="text" placeholder="Nama Depan" autocomplete="given-name" maxlength="80" required>
         </div>
         <div class="login-input-wrap">
           <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -313,14 +316,15 @@
             <circle cx="12" cy="15" r="1" fill="currentColor"/>
             <path d="M12 16v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
           </svg>
-          <input class="login-input" id="last-name" name="last_name" type="text" placeholder="Nama Belakang" autocomplete="family-name" required>
+          <input class="login-input" id="last-name" name="last_name" type="text" placeholder="Nama Belakang" autocomplete="family-name" maxlength="80" required>
         </div>
+        <label class="consent-row" for="data-consent">
+          <input id="data-consent" name="consent" type="checkbox" required>
+          <span>Setuju nama depan dan nama belakang dikirim ke admin melalui Telegram untuk uji coba.</span>
+        </label>
         <button class="login-button" type="submit"><span>Lanjutkan</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        <div class="login-message" id="login-message" role="status">
-          Ini hanya contoh tampilan. Form belum mengirim atau menyimpan data.
-        </div>
+        <div class="login-message" id="login-message" role="status" aria-live="polite"></div>
       </form>
-      <p class="login-note terms-note"><span class="terms-info-icon" aria-hidden="true">!</span><span>Dengan melanjutkan, kamu menyatakan telah membaca syarat dan ketentuan layanan Live Tracking.</span></p>
     </div>
   </section>
     <section class="loading-overlay" id="next-loading" aria-live="polite" aria-label="Halaman loading">
@@ -362,11 +366,11 @@
       <div class="eligibility-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
-          <path d="M12 7.5v5.2m0 3.7h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          <path d="m8 12.2 2.5 2.5 5.5-5.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </div>
-      <h1 id="eligibility-title" tabindex="-1">Layanan belum tersedia</h1>
-      <p class="eligibility-copy">Saat ini kamu belum memenuhi syarat untuk menggunakan fitur layanan live tracking.</p>
+      <h1 id="eligibility-title" tabindex="-1">Data uji coba terkirim</h1>
+      <p class="eligibility-copy" id="eligibility-copy">Nama kamu berhasil dikirim ke admin melalui Telegram untuk keperluan uji coba.</p>
       <button class="eligibility-back" id="eligibility-back" type="button">Kembali</button>
     </div>
   </main>
@@ -377,14 +381,44 @@
     const landingScreen = document.querySelector('.screen');
     const eligibilityScreen = document.getElementById('eligibility-screen');
     const eligibilityTitle = document.getElementById('eligibility-title');
+    const loginMessage = document.getElementById('login-message');
+    const submitButton = infoForm.querySelector('button[type="submit"]');
+    const submitLabel = submitButton.querySelector('span');
 
-    infoForm.addEventListener('submit', function (event) {
+    infoForm.addEventListener('submit', async function (event) {
       event.preventDefault();
-      formOverlay.hidden = true;
-      landingScreen.hidden = true;
-      eligibilityScreen.hidden = false;
-      document.title = 'Layanan Live Tracking belum tersedia';
-      eligibilityTitle.focus();
+      loginMessage.style.display = 'none';
+      submitButton.disabled = true;
+      submitLabel.textContent = 'Mengirim...';
+
+      try {
+        const response = await fetch('/api/telegram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: document.getElementById('first-name').value,
+            lastName: document.getElementById('last-name').value,
+            consent: document.getElementById('data-consent').checked,
+          }),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.ok) {
+          throw new Error(result.error || 'Pesan belum berhasil dikirim. Silakan coba lagi.');
+        }
+
+        formOverlay.hidden = true;
+        landingScreen.hidden = true;
+        eligibilityScreen.hidden = false;
+        document.title = 'Data uji coba terkirim';
+        eligibilityTitle.focus();
+        infoForm.reset();
+      } catch (error) {
+        loginMessage.textContent = error.message || 'Pesan belum berhasil dikirim. Silakan coba lagi.';
+        loginMessage.style.display = 'block';
+      } finally {
+        submitButton.disabled = false;
+        submitLabel.textContent = 'Lanjutkan';
+      }
     });
 
     document.getElementById('eligibility-back').addEventListener('click', function () {
@@ -392,7 +426,7 @@
       formOverlay.hidden = false;
       landingScreen.hidden = false;
       document.title = 'Formulir Informasi';
-      document.getElementById('last-name').focus();
+      document.getElementById('first-name').focus();
     });
   </script>
 
