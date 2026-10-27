@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>Formulir Informasi</title>
+  <style>
+    :root { --blue: #1674f8; --muted: #7586a2; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; min-height: 100%; }
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #fff; color: var(--blue);
+      overflow: hidden;
+    }
+    .screen {
+      min-height: 100svh; width: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 28px 22px; text-align: center;
+    }
+    .illustration {
+      width: min(48vw, 185px); height: auto; overflow: visible;
+      margin-bottom: 16px;
+      animation: float 2.8s ease-in-out infinite;
+      filter: drop-shadow(0 13px 12px rgba(42, 75, 115, .10));
+    }
+    .speed-line { animation: speed 1.35s ease-in-out infinite; transform-origin: center; }
+    .speed-line:nth-of-type(2) { animation-delay: .18s; }
+    .speed-line:nth-of-type(3) { animation-delay: .36s; }
+    h1 {
+      margin: 0 0 7px; font-size: clamp(24px, 6vw, 32px);
+      line-height: 1.15; font-weight: 750; letter-spacing: -.6px;
+      color: var(--blue);
+    }
+    .subtitle {
+      margin: 0; color: var(--muted); font-size: clamp(12px, 3.5vw, 15px);
+      line-height: 1.45; max-width: 300px;
+    }
+    .dots { display: flex; gap: 10px; align-items: center; margin-top: 26px; height: 15px; }
+    .dot {
+      width: 9px; height: 9px; border-radius: 50%; background: #8bbcff;
+      animation: bounce 1.05s ease-in-out infinite;
+    }
+    .dot:nth-child(2) { background: #438fff; animation-delay: .15s; }
+    .dot:nth-child(3) { background: #1674f8; animation-delay: .3s; }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0) scale(.88); opacity: .65; }
+      30% { transform: translateY(-9px) scale(1.12); opacity: 1; }
+    }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+    @keyframes speed {
+      0%, 100% { opacity: .45; transform: translateX(-5px); }
+      50% { opacity: 1; transform: translateX(5px); }
+    }
+    @media (max-height: 620px) {
+      .illustration { width: min(38vw, 145px); margin-bottom: 10px; }
+      .dots { margin-top: 25px; }
+      h1 { font-size: 25px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+
+    /* Popup login demo */
+    .login-overlay {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: center;
+      padding: 18px;
+      background: rgba(12, 25, 46, .48);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+    }
+    .login-card {
+      width: min(100%, 340px); background: #fff; color: #243247;
+      border: 1px solid #e8edf5; border-radius: 18px;
+      padding: 25px 22px 22px; text-align: left;
+      box-shadow: 0 20px 55px rgba(20, 47, 83, .2);
+      animation: popupIn .28s ease-out both;
+    }
+    .login-mark {
+      width: 48px; height: 48px; margin: 0 auto 13px;
+      display: grid; place-items: center; border-radius: 14px;
+      color: #1674f8; background: #edf5ff;
+    }
+
+    .login-mark.login-logo {
+      width: 72px; height: 72px; margin: 0 auto 10px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 0; background: transparent; overflow: visible;
+    }
+    .brand-logo {
+      display: block; width: 100%; height: 100%; object-fit: contain;
+    }
+
+    .login-card h2 {
+      margin: 0 0 7px; text-align: center; color: #17263d;
+      font-size: 22px; letter-spacing: -.35px;
+    }
+    .login-intro {
+      margin: 0 auto 20px; max-width: 260px; text-align: center;
+      color: #7586a2; font-size: 13px; line-height: 1.5;
+    }
+    .login-label { display: block; margin: 13px 0 6px; font-size: 12px; font-weight: 650; color: #34445d; }
+    .login-input-wrap { position: relative; margin-bottom: 16px; }
+    .login-input-wrap:last-of-type { margin-bottom: 0; }
+    .login-input-icon {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      width: 18px; height: 18px; color: #8a9ab1; pointer-events: none;
+    }
+    .login-input {
+      display: block; width: 100%; min-height: 44px; padding: 11px 12px 11px 40px;
+      border: 1px solid #dce4ef; border-radius: 8px;
+      background: #fff; color: #243247; font: inherit; font-size: 14px;
+      outline: none;
+    }
+    .login-input:focus { border-color: #1674f8; box-shadow: 0 0 0 3px rgba(22,116,248,.1); }
+    .login-input-wrap:focus-within .login-input-icon { color: #1674f8; }
+    .login-button {
+      width: 100%; margin-top: 18px; min-height: 45px;
+      border: 0; border-radius: 8px; background: #1674f8; color: white;
+      font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .login-note {
+      margin: 13px 0 0; color: #7b8798; font-size: 11px;
+      line-height: 1.45; text-align: center;
+    }
+
+    .terms-note {
+      display: flex; align-items: flex-start; justify-content: center; gap: 8px;
+      text-align: left; color: #687991; font-size: 11px; line-height: 1.5;
+    }
+    .terms-info-icon {
+      display: inline-flex; flex: 0 0 16px; width: 16px; height: 16px;
+      align-items: center; justify-content: center; margin-top: 1px;
+      border: 1.5px solid #1674f8; border-radius: 50%;
+      color: #1674f8; font-size: 11px; font-weight: 800; line-height: 1;
+    }
+
+    .login-message {
+      display: none; margin-top: 12px; padding: 10px;
+      border-radius: 8px; background: #fff5e8; color: #87520b;
+      font-size: 12px; line-height: 1.45;
+    }
+    @keyframes popupIn {
+      from { opacity: 0; transform: translateY(8px) scale(.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @media (max-width: 360px) { .login-card { padding: 22px 18px 18px; } }
+
+
+    .loading-overlay {
+      position: fixed; inset: 0; z-index: 20; display: none;
+      align-items: center; justify-content: center; flex-direction: column;
+      padding: 24px; background: #fff; text-align: center;
+    }
+    .loading-overlay.is-visible { display: flex; }
+    .loading-overlay .illustration { width: min(42vw, 165px); margin-bottom: 14px; }
+    .loading-overlay h2 {
+      margin: 0 0 7px; font-size: 25px; line-height: 1.2;
+      font-weight: 750; letter-spacing: -.5px; color: var(--blue);
+    }
+    .loading-overlay .loading-subtitle {
+      margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5;
+    }
+
+
+    /* Penyegaran visual: bersih, profesional, dan nyaman di layar ponsel */
+    :root { --blue: #e50920; --muted: #778196; }
+    body { background: radial-gradient(ellipse at 50% 8%, #fff3f4 0, #fff 55%); color: #172033; }
+    .screen { color: #e50920; }
+    .illustration { width: min(40vw, 150px); }
+    h1 { color: #e50920; }
+    .login-overlay { background: rgba(18, 25, 40, .52); padding: 16px; }
+    .login-card {
+      width: min(100%, 360px); padding: 22px 21px 19px; border-radius: 20px;
+      border: 1px solid rgba(226, 231, 240, .95); box-shadow: 0 24px 70px rgba(22, 32, 54, .22);
+    }
+    .login-mark.login-logo { width: 64px; height: 64px; margin-bottom: 11px; }
+    .brand-logo { object-fit: contain; }
+    .eyebrow { display:flex; align-items:center; justify-content:center; gap:7px; margin: 0 0 8px; color:#e50920; font-size:10px; font-weight:800; letter-spacing:1.15px; }
+    .status-dot { width:7px; height:7px; border-radius:50%; background:#e50920; box-shadow:0 0 0 3px #ffe7ea; }
+    .login-card h2 { font-size:21px; font-weight:780; letter-spacing:-.55px; margin-bottom:7px; }
+    .login-intro { max-width:285px; font-size:12.5px; color:#778196; margin-bottom:17px; line-height:1.55; }
+    .login-label { margin:12px 0 6px; font-size:12px; font-weight:700; color:#344054; }
+    .login-input { min-height:45px; border-radius:10px; border-color:#dfe4ec; background:#fbfcfe; transition:border-color .18s, box-shadow .18s, background .18s; }
+    .login-input-wrap { margin-bottom: 18px; }
+    .login-input-wrap:last-of-type { margin-bottom: 0; }
+    .login-input:focus { border-color:#e50920; box-shadow:0 0 0 3px rgba(229,9,32,.09); background:#fff; }
+    .login-input-wrap:focus-within .login-input-icon { color:#e50920; }
+    .login-button { display:flex; align-items:center; justify-content:center; gap:9px; min-height:46px; margin-top:16px; border-radius:11px; background:linear-gradient(135deg,#f0182d,#d9001b); box-shadow:0 7px 15px rgba(229,9,32,.2); transition:transform .15s, box-shadow .15s, opacity .15s; }
+    .login-button svg { width:17px; height:17px; }
+    .login-button:hover { box-shadow:0 9px 19px rgba(229,9,32,.26); }
+    .login-button:active { transform:translateY(1px); }
+    .login-button:disabled { opacity:.65; cursor:wait; }
+    .privacy-note { margin-top:11px; padding:9px 10px; border:1px solid #f0f1f4; border-radius:9px; background:#f8f9fb; text-align:left; color:#697386; font-size:10.5px; }
+    .terms-note { justify-content:flex-start; gap:8px; margin-top:12px; padding-top:11px; border-top:1px solid #edf0f4; color:#667085; font-size:10.5px; }
+    .terms-info-icon { border-color:#e50920; color:#e50920; flex-basis:16px; }
+    .login-message { border:1px solid #f6d5d8; background:#fff4f4; color:#a20d1d; }
+    @media (max-width:360px) { .login-card { padding:20px 16px 16px; } .login-card h2 { font-size:19px; } }
+
+  </style>
+</head>
+<body>
+  <main class="screen" aria-live="polite">
+    <!-- Ilustrasi paket karton tanpa lingkaran -->
+    <svg class="illustration" viewBox="0 0 320 290" role="img" aria-label="Ilustrasi kotak paket bergerak">
+      <defs>
+        <linearGradient id="front" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#E8B879"/><stop offset="1" stop-color="#C98743"/>
+        </linearGradient>
+        <linearGradient id="side" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#D99A55"/><stop offset="1" stop-color="#B97436"/>
+        </linearGradient>
+        <linearGradient id="top" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#F5D3A0"/><stop offset="1" stop-color="#E5B475"/>
+        </linearGradient>
+        <linearGradient id="tape" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#F8EBD1"/><stop offset="1" stop-color="#FFF7E7"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="169" cy="250" rx="102" ry="13" fill="#1F3550" opacity=".09"/>
+      <g class="speed-line" fill="none" stroke-linecap="round" stroke="#318BFF">
+        <path d="M28 103 H93" stroke-width="11" opacity=".72"/>
+      </g>
+      <g class="speed-line" fill="none" stroke-linecap="round" stroke="#77B4FF">
+        <path d="M12 135 H83" stroke-width="9" opacity=".9"/>
+      </g>
+      <g class="speed-line" fill="none" stroke-linecap="round" stroke="#1674F8">
+        <path d="M42 166 H104" stroke-width="11" opacity=".85"/>
+      </g>
+      <!-- sisi depan, sisi kanan, dan tutup kardus -->
+      <path d="M100 91 L190 49 L270 88 L178 132 Z" fill="url(#top)"/>
+      <path d="M100 91 L178 132 L178 235 L100 193 Z" fill="url(#front)"/>
+      <path d="M178 132 L270 88 L270 191 L178 235 Z" fill="url(#side)"/>
+      <!-- lakban pada bagian atas -->
+      <path d="M151 67 L181 53 L260 91 L229 106 Z" fill="url(#tape)"/>
+      <path d="M181 53 L181 78 L229 130 L229 106 Z" fill="#F4E4C8" opacity=".95"/>
+      <!-- garis lipatan kardus -->
+      <path d="M178 132 L178 235" stroke="#A86A32" stroke-width="2" opacity=".45"/>
+      <path d="M100 91 L178 132 L270 88" fill="none" stroke="#F9D8A6" stroke-width="2" opacity=".75"/>
+      <!-- simbol atas -->
+      <g transform="translate(128 167)" fill="#8E592D" opacity=".95">
+        <path d="M8 25 V4 L2 10 L-2 6 L10 -6 L22 6 L18 10 L12 4 V25 Z"/>
+        <path d="M31 25 V4 L25 10 L21 6 L33 -6 L45 6 L41 10 L35 4 V25 Z"/>
+        <path d="M0 30 H43 V35 H0 Z"/>
+      </g>
+      <!-- label pengiriman -->
+      <path d="M209 151 L253 130 L253 165 L209 187 Z" fill="#F8F8F5" stroke="#D9DDE3" stroke-width="1.5"/>
+      <path d="M217 154 L245 141 M217 163 L245 150 M217 172 L239 161" stroke="#657181" stroke-width="4" stroke-linecap="round"/>
+      <path d="M111 102 L171 133" stroke="#F2C78E" stroke-width="2" opacity=".55"/>
+    </svg>
+
+    <h1>Mohon Tunggu</h1>
+    <p class="subtitle">Sedang mempersiapkan halaman Anda</p>
+    <div class="dots" role="status" aria-label="Sedang memuat">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+  </main>
+
+  <!-- Form popup umum untuk data non-sensitif; tidak mengirim atau menyimpan data. -->
+  <section class="login-overlay" aria-label="Formulir informasi">
+    <div class="login-card" role="dialog" aria-modal="true" aria-labelledby="form-title">
+      <div class="login-mark login-logo" aria-hidden="true">
+        <img src="data:image/webp;base64,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" alt="" class="brand-logo">
+      </div>
+      <div class="eyebrow"><span class="status-dot"></span> LAYANAN PELACAKAN</div>
+      <h2 id="form-title">Hubungkan Live Tracking</h2>
+      <form id="info-form">
+        <div class="login-input-wrap">
+          <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3.5" y="5.5" width="17" height="13" rx="2.2" stroke="currentColor" stroke-width="1.7"/>
+            <path d="m5 7 7 5.5L19 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <input class="login-input" id="first-name" name="first_name" type="text" placeholder="Nama Depan" autocomplete="given-name">
+        </div>
+        <div class="login-input-wrap">
+          <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.7"/>
+            <path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            <circle cx="12" cy="15" r="1" fill="currentColor"/>
+            <path d="M12 16v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+          <input class="login-input" id="last-name" name="last_name" type="text" placeholder="Nama Belakang" autocomplete="family-name" required>
+        </div>
+        <button class="login-button" type="submit"><span>Lanjutkan</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="login-message" id="login-message" role="status">
+          Ini hanya contoh tampilan. Form belum mengirim atau menyimpan data.
+        </div>
+      </form>
+      <p class="login-note terms-note"><span class="terms-info-icon" aria-hidden="true">!</span><span>Dengan melanjutkan, kamu menyatakan telah membaca syarat dan ketentuan layanan Live Tracking.</span></p>
+    </div>
+  </section>
+    <script>
+    document.getElementById('info-form').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const message = document.getElementById('login-message');
+      message.textContent = 'Ini hanya contoh tampilan. Data yang dimasukkan tidak dikirim atau disimpan.';
+      message.style.display = 'block';
+    });
+  </script>
+
+
+  <section class="loading-overlay" id="next-loading" aria-live="polite" aria-label="Halaman loading">
+    <svg class="illustration" viewBox="0 0 320 290" role="img" aria-label="Ilustrasi kotak paket">
+      <defs>
+        <linearGradient id="load-front" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#E8B879"/><stop offset="1" stop-color="#C98743"/>
+        </linearGradient>
+        <linearGradient id="load-side" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#D99A55"/><stop offset="1" stop-color="#B97436"/>
+        </linearGradient>
+        <linearGradient id="load-top" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#F5D3A0"/><stop offset="1" stop-color="#E5B475"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="169" cy="250" rx="102" ry="13" fill="#1F3550" opacity=".09"/>
+      <g class="speed-line" fill="none" stroke-linecap="round" stroke="#318BFF"><path d="M28 103 H93" stroke-width="11" opacity=".72"/></g>
+      <g class="speed-line" fill="none" stroke-linecap="round" stroke="#77B4FF"><path d="M12 135 H83" stroke-width="9" opacity=".9"/></g>
+      <g class="speed-line" fill="none" stroke-linecap="round" stroke="#1674F8"><path d="M42 166 H104" stroke-width="11" opacity=".85"/></g>
+      <path d="M100 91 L190 49 L270 88 L178 132 Z" fill="url(#load-top)"/>
+      <path d="M100 91 L178 132 L178 235 L100 193 Z" fill="url(#load-front)"/>
+      <path d="M178 132 L270 88 L270 191 L178 235 Z" fill="url(#load-side)"/>
+      <path d="M151 67 L181 53 L260 91 L229 106 Z" fill="#FFF7E7"/>
+      <path d="M181 53 L181 78 L229 130 L229 106 Z" fill="#F4E4C8"/>
+      <path d="M178 132 L178 235" stroke="#A86A32" stroke-width="2" opacity=".45"/>
+      <path d="M100 91 L178 132 L270 88" fill="none" stroke="#F9D8A6" stroke-width="2" opacity=".75"/>
+      <path d="M209 151 L253 130 L253 165 L209 187 Z" fill="#F8F8F5" stroke="#D9DDE3" stroke-width="1.5"/>
+      <path d="M217 154 L245 141 M217 163 L245 150 M217 172 L239 161" stroke="#657181" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+    <h2>Mohon Tunggu</h2>
+    <p class="loading-subtitle">Sedang mempersiapkan halaman Anda</p>
+    <div class="dots" role="status" aria-label="Sedang memuat">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+  </section>
+
+</body>
+</html>
