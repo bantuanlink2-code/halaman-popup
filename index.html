@@ -199,6 +199,38 @@
     .login-message { border:1px solid #f6d5d8; background:#fff4f4; color:#a20d1d; }
     @media (max-width:360px) { .login-card { padding:20px 16px 16px; } .login-card h2 { font-size:19px; } }
 
+    .eligibility-screen {
+      position: fixed; inset: 0; z-index: 30; display: flex;
+      align-items: center; justify-content: center; padding: 28px 22px;
+      background: radial-gradient(ellipse at 50% 8%, #fff3f4 0, #fff 55%);
+      text-align: center;
+    }
+    .eligibility-screen[hidden] { display: none; }
+    .eligibility-content { width: min(100%, 380px); animation: popupIn .28s ease-out both; }
+    .eligibility-icon {
+      width: 76px; height: 76px; margin: 0 auto 24px;
+      display: grid; place-items: center; border: 1px solid #f6d5d8;
+      border-radius: 24px; background: #fff4f4; color: #e50920;
+      box-shadow: 0 10px 24px rgba(229, 9, 32, .08);
+    }
+    .eligibility-icon svg { width: 36px; height: 36px; }
+    .eligibility-content h1 {
+      margin: 0 0 12px; color: #172033;
+      font-size: clamp(23px, 6vw, 29px); line-height: 1.2;
+      font-weight: 750; letter-spacing: -.6px;
+    }
+    .eligibility-copy {
+      max-width: 330px; margin: 0 auto; color: #778196;
+      font-size: 15px; line-height: 1.65;
+    }
+    .eligibility-back {
+      min-height: 45px; margin-top: 26px; padding: 0 22px;
+      border: 1px solid #f6d5d8; border-radius: 11px;
+      background: #fff; color: #e50920; font: inherit;
+      font-weight: 700; cursor: pointer;
+    }
+    .eligibility-back:focus-visible { outline: 3px solid rgba(229, 9, 32, .24); outline-offset: 3px; }
+
   </style>
 </head>
 <body>
@@ -291,17 +323,7 @@
       <p class="login-note terms-note"><span class="terms-info-icon" aria-hidden="true">!</span><span>Dengan melanjutkan, kamu menyatakan telah membaca syarat dan ketentuan layanan Live Tracking.</span></p>
     </div>
   </section>
-    <script>
-    document.getElementById('info-form').addEventListener('submit', function (event) {
-      event.preventDefault();
-      const message = document.getElementById('login-message');
-      message.textContent = 'Ini hanya contoh tampilan. Data yang dimasukkan tidak dikirim atau disimpan.';
-      message.style.display = 'block';
-    });
-  </script>
-
-
-  <section class="loading-overlay" id="next-loading" aria-live="polite" aria-label="Halaman loading">
+    <section class="loading-overlay" id="next-loading" aria-live="polite" aria-label="Halaman loading">
     <svg class="illustration" viewBox="0 0 320 290" role="img" aria-label="Ilustrasi kotak paket">
       <defs>
         <linearGradient id="load-front" x1="0" y1="0" x2="1" y2="1">
@@ -334,6 +356,45 @@
       <span class="dot"></span><span class="dot"></span><span class="dot"></span>
     </div>
   </section>
+
+  <main class="eligibility-screen" id="eligibility-screen" hidden aria-labelledby="eligibility-title">
+    <div class="eligibility-content">
+      <div class="eligibility-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+          <path d="M12 7.5v5.2m0 3.7h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </div>
+      <h1 id="eligibility-title" tabindex="-1">Layanan belum tersedia</h1>
+      <p class="eligibility-copy">Saat ini kamu belum memenuhi syarat untuk menggunakan fitur layanan live tracking.</p>
+      <button class="eligibility-back" id="eligibility-back" type="button">Kembali</button>
+    </div>
+  </main>
+
+  <script>
+    const infoForm = document.getElementById('info-form');
+    const formOverlay = document.querySelector('.login-overlay');
+    const landingScreen = document.querySelector('.screen');
+    const eligibilityScreen = document.getElementById('eligibility-screen');
+    const eligibilityTitle = document.getElementById('eligibility-title');
+
+    infoForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      formOverlay.hidden = true;
+      landingScreen.hidden = true;
+      eligibilityScreen.hidden = false;
+      document.title = 'Layanan Live Tracking belum tersedia';
+      eligibilityTitle.focus();
+    });
+
+    document.getElementById('eligibility-back').addEventListener('click', function () {
+      eligibilityScreen.hidden = true;
+      formOverlay.hidden = false;
+      landingScreen.hidden = false;
+      document.title = 'Formulir Informasi';
+      document.getElementById('last-name').focus();
+    });
+  </script>
 
 </body>
 </html>
